@@ -1,4 +1,3 @@
-// lib/features/payments/services/mp_checkout_service.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,8 +7,7 @@ class MpCheckoutService {
   final SupabaseClient _sb;
 
   Future<void> startCheckout(BuildContext context, String productId) async {
-    // refresca para evitar tokens vencidos
-    await _sb.auth.refreshSession();
+    await _sb.auth.refreshSession(); // evita tokens vencidos
     final session = _sb.auth.currentSession;
 
     if (session == null) {
@@ -22,9 +20,7 @@ class MpCheckoutService {
       final resp = await _sb.functions.invoke(
         'maru-mp-create-preference',
         body: {'product_id': productId},
-        headers: {
-          'Authorization': 'Bearer ${session.accessToken}', // <- CLAVE
-        },
+        headers: {'Authorization': 'Bearer ${session.accessToken}'}, // <-- clave
       );
 
       final link = (resp.data as Map)['init_point'] as String?;
