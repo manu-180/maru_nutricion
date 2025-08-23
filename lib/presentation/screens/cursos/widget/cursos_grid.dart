@@ -22,11 +22,21 @@ class CursosGrid extends StatelessWidget {
     final width = MediaQuery.sizeOf(context).width;
     final cross = width >= 1100
         ? 4
-        : width >= 900
+        : width >= 800
         ? 3
-        : width >= 600
+        : width >= 560
         ? 2
         : 1;
+    double ratio;
+    if (cross == 4) {
+      ratio = 1.05;
+    } else if (cross == 3) {
+      ratio = 1.00;
+    } else if (cross == 2) {
+      ratio = 0.95;
+    } else {
+      ratio = 0.90;
+    }
 
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _fetch(),
@@ -52,7 +62,7 @@ class CursosGrid extends StatelessWidget {
             crossAxisCount: cross,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 4 / 3,
+            childAspectRatio: ratio,
           ),
           itemBuilder: (_, i) {
             final c = items[i];

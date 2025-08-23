@@ -1,42 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maru_nutricion/presentation/widgets/maru_app_bar.dart';
+import 'package:maru_nutricion/presentation/widgets/maru_compra_progreso_dialog.dart';
 import 'package:maru_nutricion/presentation/widgets/maru_footer.dart';
 import 'package:maru_nutricion/presentation/screens/curso_detalle/widgets/course_header.dart';
 import 'package:maru_nutricion/presentation/screens/curso_detalle/widgets/lessons_list.dart';
+import 'package:maru_nutricion/presentation/widgets/wpp_floating_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-// Servicio de MP (como te pasé antes):
 import 'package:maru_nutricion/features/payments/services/mp_checkout_service.dart';
 
 class CursoDetalleScreen extends StatelessWidget {
   final String productId;
-  const CursoDetalleScreen({super.key, required this.productId});
+  CursoDetalleScreen({super.key, required this.productId});
 
   static const double _maxWidth = 1100;
+  final checkout = MpCheckoutService(Supabase.instance.client);
 
   Future<_CourseBundle> _fetchAll() async {
     final sb = Supabase.instance.client;
 
-    // --- curso ---
     final course = await sb
         .from('maru_products')
         .select('id, title, description, cover_url, price_cents')
         .eq('id', productId)
         .eq('kind', 'course')
-        .single(); // ya es Map<String, dynamic>
+        .single();
 
-    // --- lecciones ---
     final rawLessons = await sb
         .from('maru_lessons')
-        .select(
-          'id, title, section, position, free_preview, thumbnail_url, duration_sec',
-        )
+        .select('id, title, section, position, free_preview, thumbnail_url, duration_sec')
         .eq('product_id', productId)
         .order('section', ascending: true)
         .order('position', ascending: true);
 
-    // --- acceso del usuario (si logueado) ---
     final uid = sb.auth.currentUser?.id;
     bool hasAccess = false;
     if (uid != null) {
@@ -56,13 +52,47 @@ class CursoDetalleScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _comprar(BuildContext context) async {
+    final sb = Supabase.instance.client;
+
+    final uid = sb.auth.currentUser?.id;
+    if (uid == null) {
+      final m = ScaffoldMessenger.of(context);
+      m.clearSnackBars();
+      m.showSnackBar(const SnackBar(
+        content: Text('Para comprar un curso, iniciá sesión.'),
+        behavior: SnackBarBehavior.fixed,
+        duration: Duration(seconds: 3),
+      ));
+      // context.go('/login');
+      return;
+    }
+
+    final dialog = MaruCompraProgresoDialog.show(
+      context,
+      mensajeInicial: 'Generando ticket de compra…',
+    );
+    try {
+      dialog.update('Redirigiendo a Mercado Pago…');
+      await checkout.startCheckout(context, productId);
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('No se pudo iniciar la compra. Intenta otra vez.'),
+        behavior: SnackBarBehavior.fixed,
+      ));
+    } finally {
+      dialog.close(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final checkout = MpCheckoutService(Supabase.instance.client);
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
       appBar: const MaruAppBar(),
-      body: Center(
+      body: Align(
+        alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _maxWidth),
           child: FutureBuilder<_CourseBundle>(
@@ -82,6 +112,8 @@ class CursoDetalleScreen extends StatelessWidget {
               }
 
               final bundle = snap.data!;
+              final hasAccess = bundle.hasAccess;
+
               return ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 children: [
@@ -90,19 +122,32 @@ class CursoDetalleScreen extends StatelessWidget {
                     description: bundle.course['description'] ?? '',
                     coverUrl: bundle.course['cover_url'] ?? '',
                     priceCents: bundle.course['price_cents'] ?? 0,
-                    hasAccess: bundle.hasAccess,
-                    onBuy: () => checkout.startCheckout(context, productId),
-                    onContinue: () {
-                      final first =
-                          bundle.lessons.isNotEmpty ? bundle.lessons.first : null;
-                      if (first != null) {
-                        context.go('/leccion/${first["id"]}');
-                      }
-                    },
+                    hasAccess: hasAccess,
+                    // 👉 solo desktop/tablet muestra botón propio del header
+                    onBuy: (!isMobile && !hasAccess) ? () { _comprar(context); } : null,
+                    onContinue: hasAccess ? () {
+                      // tu lógica para continuar (por ej. ir a la primera lección)
+                    } : null,
                   ),
+
+                  // 👉 solo mobile muestra "Comprar ahora"
+                  if (isMobile && !hasAccess) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () { _comprar(context); },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          child: Text('Comprar ahora'),
+                        ),
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 24),
                   LessonsList(
-                    hasAccess: bundle.hasAccess,
+                    hasAccess: hasAccess,
                     lessons: bundle.lessons,
                   ),
                   const SizedBox(height: 48),
@@ -113,6 +158,7 @@ class CursoDetalleScreen extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: const WhatsappFloatingButton(),
     );
   }
 }

@@ -3,9 +3,16 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'home_course_card.dart';
 
-class HomeCoursesGrid extends StatelessWidget {
+class HomeCoursesGrid extends StatefulWidget {
   final int limit;
   const HomeCoursesGrid({super.key, this.limit = 4});
+
+  @override
+  State<HomeCoursesGrid> createState() => _HomeCoursesGridState();
+}
+
+class _HomeCoursesGridState extends State<HomeCoursesGrid> {
+  late final Future<List<Map<String, dynamic>>> _future;
 
   Future<List<Map<String, dynamic>>> _fetch() async {
     final sb = Supabase.instance.client;
@@ -15,8 +22,14 @@ class HomeCoursesGrid extends StatelessWidget {
         .eq('kind', 'course')
         .eq('is_published', true)
         .order('created_at', ascending: false)
-        .limit(limit);
+        .limit(widget.limit);
     return (res as List).cast<Map<String, dynamic>>();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _fetch(); // 👈 cache
   }
 
   @override
@@ -30,16 +43,23 @@ class HomeCoursesGrid extends StatelessWidget {
         ? 2
         : 1;
 
+    double ratio;
+    if (cross == 4) {
+      ratio = 1.00;
+    } else if (cross == 3) {
+      ratio = 0.95;
+    } else if (cross == 2) {
+      ratio = 0.85; // más alto
+    } else {
+      ratio = 0.75; // 👈 mobile/una columna: bastante más alto
+    }
+
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _fetch(),
+      future: _future, // 👈 usa el mismo Future
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          );
+          // loader sin “flash”
+          return const SizedBox(height: 140);
         }
         final items = snap.data ?? [];
         if (items.isEmpty) {
@@ -53,7 +73,7 @@ class HomeCoursesGrid extends StatelessWidget {
             crossAxisCount: cross,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 4 / 3,
+            childAspectRatio: ratio,
           ),
           itemBuilder: (_, i) {
             final c = items[i];

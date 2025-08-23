@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:maru_nutricion/presentation/widgets/maru_app_bar.dart';
 import 'package:maru_nutricion/presentation/widgets/maru_footer.dart';
 import 'package:maru_nutricion/presentation/screens/home/widgets/home_hero.dart';
@@ -6,6 +7,7 @@ import 'package:maru_nutricion/presentation/screens/home/widgets/home_plans_teas
 import 'package:maru_nutricion/presentation/screens/home/widgets/home_section.dart';
 import 'package:maru_nutricion/presentation/screens/home/widgets/home_courses_grid.dart';
 import 'package:maru_nutricion/presentation/screens/home/widgets/no_glow_scroll.dart';
+import 'package:maru_nutricion/presentation/widgets/wpp_floating_button.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -65,7 +67,7 @@ class HomeScreen extends StatelessWidget {
               HomeSection(
                 title: 'Cursos destacados',
                 trailing: TextButton(
-                  onPressed: () => Navigator.of(context).pushNamed('/cursos'),
+                  onPressed: () => context.push('/cursos'),
                   child: const Text('Ver todos'),
                 ),
                 child: const HomeCoursesGrid(limit: 4),
@@ -75,7 +77,7 @@ class HomeScreen extends StatelessWidget {
               HomeSection(
                 title: 'Planes de nutrición',
                 trailing: TextButton(
-                  onPressed: () => Navigator.of(context).pushNamed('/planes'),
+                  onPressed: () => context.push('/planes'),
                   child: const Text('Ver planes'),
                 ),
                 child: const HomePlansTeaser(),
@@ -105,6 +107,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+      floatingActionButton: WhatsappFloatingButton(),
     );
   }
 }

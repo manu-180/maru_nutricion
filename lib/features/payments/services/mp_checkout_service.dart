@@ -11,8 +11,9 @@ class MpCheckoutService {
     final session = _sb.auth.currentSession;
 
     if (session == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Iniciá sesión para comprar')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Iniciá sesión para comprar')),
+      );
       return;
     }
 
@@ -20,7 +21,9 @@ class MpCheckoutService {
       final resp = await _sb.functions.invoke(
         'maru-mp-create-preference',
         body: {'product_id': productId},
-        headers: {'Authorization': 'Bearer ${session.accessToken}'}, // <-- clave
+        headers: {
+          'Authorization': 'Bearer ${session.accessToken}',
+        }, // <-- clave
       );
 
       final link = (resp.data as Map)['init_point'] as String?;
@@ -33,8 +36,9 @@ class MpCheckoutService {
       );
       if (!ok) throw 'No se pudo abrir el link';
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error al iniciar pago: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al iniciar pago: $e')));
     }
   }
 }

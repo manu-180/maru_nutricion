@@ -18,32 +18,49 @@ class MaruNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Si la URL está vacía, devolvé placeholder directo
+    // URL vacía → placeholder
     if (url.trim().isEmpty) {
       return _placeholder(context);
     }
 
-    final img = Image.network(
+    Widget img = Image.network(
       url,
       width: width,
       height: height,
       fit: fit,
-      loadingBuilder: (c, child, progress) => progress == null
-          ? child
-          : Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-      errorBuilder: (c, err, st) => _placeholder(context),
+      gaplessPlayback: true, // 👈 evita parpadeo en relayout
+      filterQuality: FilterQuality.medium, // 👈 mejor reescalado
+      // Fade-in sólo en el primer frame cargado
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) {
+          return child;
+        }
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: const Duration(milliseconds: 200),
+          child: child,
+        );
+      },
+      // Loader discreto (sin fondo que “flashea”)
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => _placeholder(context),
     );
 
     if (borderRadius != null) {
-      return ClipRRect(borderRadius: borderRadius!, child: img);
+      img = ClipRRect(borderRadius: borderRadius!, child: img);
     }
-    return img;
+
+    // Aísla repaints para mayor estabilidad al redimensionar
+    return RepaintBoundary(child: img);
   }
 
   Widget _placeholder(BuildContext context) => Container(

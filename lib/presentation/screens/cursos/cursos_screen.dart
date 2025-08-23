@@ -17,18 +17,24 @@ class CursosScreen extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _maxWidth),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          
             children: [
-              Text(
-                'Todos los cursos',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+              Padding(
+                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: Text(
+                  'Todos los cursos',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                'Capacitaciones 100% online orientadas a rendimiento deportivo.',
-                style: theme.textTheme.bodyLarge,
+              Padding(
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: Text(
+                  'Capacitaciones 100% online orientadas a rendimiento deportivo.',
+                  style: theme.textTheme.bodyLarge,
+                ),
               ),
               const SizedBox(height: 24),
               const CursosGrid(), // consulta a Supabase

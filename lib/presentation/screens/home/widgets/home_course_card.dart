@@ -39,8 +39,15 @@ class HomeCourseCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
-            Expanded(
-              child: MaruNetworkImage(url: coverUrl, fit: BoxFit.cover),
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child: AspectRatio(
+                aspectRatio: 16 / 7.5, // o 4/3 si la querés más alta
+                child: MaruNetworkImage(url: coverUrl, fit: BoxFit.cover),
+              ),
             ),
 
             Padding(
