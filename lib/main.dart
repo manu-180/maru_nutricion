@@ -14,11 +14,13 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final theme = const AppTheme(isDarkMode: false).theme();
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme(isDarkMode: false).getColor(),
+      theme: theme,
       routerConfig: appRouter,
     );
   }
