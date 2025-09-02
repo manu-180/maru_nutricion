@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maru_nutricion/presentation/screens/cursos/widget/cursos_grid.dart';
 import 'package:maru_nutricion/presentation/widgets/maru_app_bar.dart';
 import 'package:maru_nutricion/presentation/widgets/maru_footer.dart';
+import 'package:maru_nutricion/presentation/widgets/wpp_floating_button.dart' show WhatsappFloatingButton;
 
 class CursosScreen extends StatelessWidget {
   const CursosScreen({super.key});
@@ -43,7 +44,7 @@ class CursosScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      ), floatingActionButton: const WhatsappFloatingButton(),
     );
   }
 }
