@@ -3,7 +3,9 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"assets/AssetManifest.bin": "7eb73ca5bb535318cd333709820d5e43",
+const RESOURCES = {".vercel/project.json": "074868b31ab4eb3fbfe265d73c1c9833",
+".vercel/README.txt": "2b13c79d37d6ed82a3255b83b6815034",
+"assets/AssetManifest.bin": "7eb73ca5bb535318cd333709820d5e43",
 "assets/AssetManifest.bin.json": "1ce45ea94622313c779e7f36d924978c",
 "assets/AssetManifest.json": "c23825c5a42d3d488993a37bed081bb4",
 "assets/assets/logo/maru_logo.png": "368930c177016813bdd63b2a1a43cddf",
@@ -26,7 +28,7 @@ const RESOURCES = {"assets/AssetManifest.bin": "7eb73ca5bb535318cd333709820d5e43
 "canvaskit/skwasm.wasm": "39dd80367a4e71582d234948adc521c0",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "flutter.js": "83d881c1dbb6d6bcd6b42e274605b69c",
-"flutter_bootstrap.js": "9ae4543f4ba5d35aab7b0dd1c0625f95",
+"flutter_bootstrap.js": "aeda8b4f4d049f8e50cdf41907609970",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
 "icons/Icon-maskable-192.png": "c457ef57daa1d16f64b27b786ec2ea3c",
