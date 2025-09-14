@@ -4,6 +4,7 @@ import 'package:maru_nutricion/presentation/screens/curso_detalle/lesson/lesson_
 import 'package:maru_nutricion/presentation/screens/home/home_screen.dart';
 import 'package:maru_nutricion/presentation/screens/cursos/cursos_screen.dart';
 import 'package:maru_nutricion/presentation/screens/planes/planes_screen.dart';
+import 'package:maru_nutricion/presentation/screens/quienes_somos/quienes_somos_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -19,5 +20,14 @@ final appRouter = GoRouter(
       path: '/leccion/:id',
       builder: (_, s) => LessonScreen(lessonId: s.pathParameters['id']!),
     ),
+    GoRoute(
+      path: '/quienes-somos',
+      builder: (_, s) => const  QuienesSomosScreen(),
+    ),
+    GoRoute(
+      path: '/mis-cursos',
+      builder: (_, s) => const CursosScreen(),
+    ),
+    
   ],
 );

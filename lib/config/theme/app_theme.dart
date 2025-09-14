@@ -1,122 +1,128 @@
 import 'package:flutter/material.dart';
 
-/// Paleta (0 = color de marca del logo)
+/// Paleta (0 = celeste del logo)
 const List<Color> listColors = [
-  Color.fromRGBO(219, 121, 61, 1), // Naranja marca
-  Color(0xFF26D1D9),
-  Color(0xFF55E6C1),
-  Color(0xFFF7D794),
-  Color(0xFFFFA552),
-  Color(0xFFE74C3C),
-  Color(0xFFAF52DE),
+  Color(0xFF2FA9B1), // ajustá si tu hex exacto es otro
 ];
 
 class AppTheme {
   final int selectedColor;
   final bool isDarkMode;
-  const AppTheme({this.selectedColor = 0, this.isDarkMode = false});
+  const AppTheme({this.selectedColor = 0, this.isDarkMode = true}); // oscuro por defecto
 
-  // Brand
-  static const _brand    = Color.fromRGBO(219, 121, 61, 1);
-  static const _cream    = Color(0xFFF9F6E8);
-  static const _textDark = Color(0xFF3B3A37);
+  // Colores base
+  static const _brandTeal   = Color(0xFF2FA9B1); // celeste marca
+  static const _bgDark      = Color(0xFF2B2B2B); // gris oscuro del fondo del logo
+  static const _textOnDark  = Colors.white;
+  static const _textOnDark2 = Colors.white70;
 
   ThemeData theme() {
     final base = ThemeData(
       useMaterial3: true,
-      brightness: isDarkMode ? Brightness.dark : Brightness.light,
+      brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
         seedColor: listColors[selectedColor],
-        brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        primary: _brand,
+        brightness: Brightness.dark,
+        primary: _brandTeal,
         onPrimary: Colors.white,
-        surface: _cream,
-        onSurface: _textDark,
+        surface: _bgDark,
+        onSurface: _textOnDark,
+        background: _bgDark,
+        onBackground: _textOnDark,
       ),
-      scaffoldBackgroundColor: _cream,
+      scaffoldBackgroundColor: _bgDark,
+
       appBarTheme: const AppBarTheme(
         elevation: 0,
-        backgroundColor: _cream,
-        foregroundColor: _textDark,
+        backgroundColor: _bgDark,
+        foregroundColor: _textOnDark,
       ),
-     filledButtonTheme: FilledButtonThemeData(
-  style: ButtonStyle(
-    backgroundColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.disabled)) return _brand.withOpacity(.45);
-      return _brand;
-    }),
-    foregroundColor: MaterialStateProperty.resolveWith((states) {
-      return states.contains(MaterialState.disabled) ? Colors.white70 : Colors.white;
-    }),
-    overlayColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.hovered)) return _brand.withOpacity(.08);
-      if (states.contains(MaterialState.pressed)) return _brand.withOpacity(.16);
-      if (states.contains(MaterialState.focused)) return _brand.withOpacity(.12);
-      return null;
-    }),
-    elevation: MaterialStateProperty.resolveWith<double>((states) {
-      if (states.contains(MaterialState.hovered)) return 1;
-      return 0;
-    }),
-    shape: const MaterialStatePropertyAll(StadiumBorder()),
-    padding: const MaterialStatePropertyAll(
-      EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-    ),
-  ),
-),
 
-outlinedButtonTheme: OutlinedButtonThemeData(
-  style: ButtonStyle(
-    backgroundColor: WidgetStateProperty.resolveWith((states) {
-      final active = states.contains(WidgetState.hovered) ||
-                     states.contains(WidgetState.pressed) ||
-                     states.contains(WidgetState.focused);
-      return active ? _brand : Colors.transparent;
-    }),
-    foregroundColor: WidgetStateProperty.resolveWith((states) {
-      final active = states.contains(WidgetState.hovered) ||
-                     states.contains(WidgetState.pressed) ||
-                     states.contains(WidgetState.focused);
-      return active ? Colors.white : _textDark;
-    }),
-    side: WidgetStateProperty.resolveWith<BorderSide>((states) {
-      final active = states.contains(WidgetState.hovered) ||
-                     states.contains(WidgetState.pressed) ||
-                     states.contains(WidgetState.focused);
-      return BorderSide(color: active ? _brand : const Color(0x663B3A37), width: 1.4);
-    }),
-    overlayColor: const WidgetStatePropertyAll(Colors.transparent),
-    shape: const WidgetStatePropertyAll(StadiumBorder()),
-    padding: const WidgetStatePropertyAll(
-      EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-    ),
-  ),
-),
+      iconTheme: const IconThemeData(color: _textOnDark),
 
+      // OJO: en tu SDK esto debe ser TabBarThemeData
+      tabBarTheme: const TabBarThemeData(
+        dividerColor: Colors.transparent, // sin línea fina
+        labelColor: _textOnDark,
+        unselectedLabelColor: _textOnDark2,
+        indicatorColor: _brandTeal, // usa el celeste de marca
+      ),
 
-textButtonTheme: TextButtonThemeData(
-  style: ButtonStyle(
-    foregroundColor: const MaterialStatePropertyAll(_textDark),
-    overlayColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.hovered)) return _brand.withOpacity(.06);
-      if (states.contains(MaterialState.pressed)) return _brand.withOpacity(.10);
-      return null;
-    }),
-  ),
-),
+      filledButtonTheme: FilledButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.disabled)) return _brandTeal.withOpacity(.45);
+            return _brandTeal;
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith(
+            (states) => states.contains(MaterialState.disabled) ? Colors.white70 : Colors.white,
+          ),
+          overlayColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.hovered)) return _brandTeal.withOpacity(.08);
+            if (states.contains(MaterialState.pressed)) return _brandTeal.withOpacity(.16);
+            if (states.contains(MaterialState.focused)) return _brandTeal.withOpacity(.12);
+            return null;
+          }),
+          elevation: MaterialStateProperty.resolveWith<double>(
+            (states) => states.contains(MaterialState.hovered) ? 1 : 0,
+          ),
+          shape: const MaterialStatePropertyAll(StadiumBorder()),
+          padding: const MaterialStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
+        ),
+      ),
 
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            final active = states.contains(MaterialState.hovered) ||
+                states.contains(MaterialState.pressed) ||
+                states.contains(MaterialState.focused);
+            return active ? _brandTeal : Colors.transparent;
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith((states) {
+            final active = states.contains(MaterialState.hovered) ||
+                states.contains(MaterialState.pressed) ||
+                states.contains(MaterialState.focused);
+            return active ? Colors.white : _textOnDark;
+          }),
+          side: MaterialStateProperty.resolveWith<BorderSide>((states) {
+            final active = states.contains(MaterialState.hovered) ||
+                states.contains(MaterialState.pressed) ||
+                states.contains(MaterialState.focused);
+            return BorderSide(color: active ? _brandTeal : Colors.white38, width: 1.4);
+          }),
+          overlayColor: const MaterialStatePropertyAll(Colors.transparent),
+          shape: const MaterialStatePropertyAll(StadiumBorder()),
+          padding: const MaterialStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: const MaterialStatePropertyAll(_textOnDark),
+          overlayColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.hovered)) return _brandTeal.withOpacity(.10);
+            if (states.contains(MaterialState.pressed)) return _brandTeal.withOpacity(.16);
+            return null;
+          }),
+        ),
+      ),
     );
 
     return base.copyWith(
       textTheme: base.textTheme.apply(
-        bodyColor: _textDark,
-        displayColor: _textDark,
+        bodyColor: _textOnDark,
+        displayColor: _textOnDark,
       ),
     );
   }
 
   AppTheme copyWith({bool? isDarkMode, int? selectedColor}) => AppTheme(
-    isDarkMode: isDarkMode ?? this.isDarkMode,
-    selectedColor: selectedColor ?? this.selectedColor,
-  );
+        isDarkMode: isDarkMode ?? this.isDarkMode,
+        selectedColor: selectedColor ?? this.selectedColor,
+      );
 }
