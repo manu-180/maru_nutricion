@@ -29,7 +29,7 @@ mkdir docs
 cp -r build/web/* docs/
 copy vercel.json docs/
 git add .
-git commit -m "actualiza2"
+git commit -m "actualiza3"
 git push
 
 

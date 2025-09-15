@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:maru_nutricion/presentation/widgets/feedback/toast.dart';
+import 'package:maru_nutricion/presentation/widgets/auth/auth_dialog.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MaruAppBar extends StatefulWidget implements PreferredSizeWidget {
   const MaruAppBar({super.key});
@@ -13,7 +17,6 @@ class MaruAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _MaruAppBarState extends State<MaruAppBar>
     with SingleTickerProviderStateMixin {
-  // Menú mobile
   OverlayEntry? _menuEntry;
   late final AnimationController _menuCtrl =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 240));
@@ -22,6 +25,24 @@ class _MaruAppBarState extends State<MaruAppBar>
   late final Animation<Offset> _slide =
       Tween(begin: const Offset(0, -0.06), end: Offset.zero)
           .animate(CurvedAnimation(parent: _menuCtrl, curve: Curves.easeOutCubic));
+
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeMenu(immediate: true);
+    _menuCtrl.dispose();
+    _authSub?.cancel();
+    super.dispose();
+  }
 
   int _indexForLocation(String loc) {
     if (loc == '/' || loc.startsWith('/inicio')) return 0;
@@ -42,21 +63,46 @@ class _MaruAppBarState extends State<MaruAppBar>
     }
   }
 
-  @override
-  void dispose() {
+  void _openAuth(AuthMode mode) {
+    _menuCtrl.reverse();
     _removeMenu(immediate: true);
-    _menuCtrl.dispose();
-    super.dispose();
+    showAuthDialog(context, initial: mode, onSuccess: () {
+      if (!mounted) return;
+      setState(() {});
+    });
+  }
+
+  Future<void> _logout() async {
+    // cerrar menú si está abierto
+    if (_menuEntry != null) {
+      try {
+        await _menuCtrl.reverse().orCancel;
+      } catch (_) {}
+      _removeMenu(immediate: true);
+    }
+
+    try {
+      await Supabase.instance.client.auth.signOut();
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    // navegar a Home y luego toast (en root overlay)
+    context.go('/');
+    Future.microtask(() {
+      showSuccessToast(null, 'Sesión cerrada');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final isMobile = width < 960; // umbral un poco mayor para evitar overflow
+    final isMobile = width < 960;
     final cs = Theme.of(context).colorScheme;
 
     final loc = GoRouterState.of(context).uri.toString();
     final selected = _indexForLocation(loc);
+    final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
 
     final navTextStyle =
         (Theme.of(context).textTheme.titleMedium ?? const TextStyle(fontSize: 16))
@@ -68,7 +114,6 @@ class _MaruAppBarState extends State<MaruAppBar>
       titleSpacing: 16,
       title: Row(
         children: [
-          // Logo
           MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
@@ -81,8 +126,6 @@ class _MaruAppBarState extends State<MaruAppBar>
             ),
           ),
           const SizedBox(width: 24),
-
-          // NAV centrada (desktop) con scroll horizontal para evitar cortes
           if (!isMobile)
             Expanded(
               child: Center(
@@ -106,33 +149,44 @@ class _MaruAppBarState extends State<MaruAppBar>
             ),
         ],
       ),
-
-      // ACCIONES: mismos nav-items (mismo estilo/animación)
       actions: [
         if (!isMobile) ...[
-          _NavItem(
-            label: 'Iniciar sesión',
-            selected: loc.startsWith('/login'),
-            onTap: () => context.go('/login'),
-            primary: cs.primary,
-            textStyle: navTextStyle,
-          ),
-          const SizedBox(width: 16),
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: _NavItem(
-              label: 'Crear cuenta',
-              selected: loc.startsWith('/register'),
-              onTap: () => context.go('/register'),
+          if (isLoggedIn)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: _NavItem(
+                label: 'Cerrar sesión',
+                selected: false,
+                onTap: _logout,
+                primary: cs.primary,
+                textStyle: navTextStyle,
+              ),
+            )
+          else ...[
+            _NavItem(
+              label: 'Iniciar sesión',
+              selected: false,
+              onTap: () => _openAuth(AuthMode.login),
               primary: cs.primary,
               textStyle: navTextStyle,
             ),
-          ),
+            const SizedBox(width: 16),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: _NavItem(
+                label: 'Crear cuenta',
+                selected: false,
+                onTap: () => _openAuth(AuthMode.register),
+                primary: cs.primary,
+                textStyle: navTextStyle,
+              ),
+            ),
+          ],
         ] else ...[
           IconButton(
             onPressed: _toggleMenu,
             icon: RotationTransition(
-              turns: Tween(begin: 0.0, end: 0.5).animate(_menuCtrl), // gira 180°
+              turns: Tween(begin: 0.0, end: 0.5).animate(_menuCtrl),
               child: const Icon(Icons.keyboard_arrow_down),
             ),
           ),
@@ -142,19 +196,18 @@ class _MaruAppBarState extends State<MaruAppBar>
     );
   }
 
-  // ======= MENÚ MOBILE: overlay con animación slide + fade =======
   void _toggleMenu() {
     if (_menuEntry == null) {
       final overlay = Overlay.of(context);
       if (overlay == null) return;
-      final top = MediaQuery.of(context).padding.top + 100; // altura AppBar
+      final top = MediaQuery.of(context).padding.top + 100;
+      final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
 
       _menuEntry = OverlayEntry(
         builder: (ctx) {
           final cs = Theme.of(ctx).colorScheme;
           return Stack(
             children: [
-              // fondo que captura tap para cerrar
               Positioned.fill(
                 child: FadeTransition(
                   opacity: _fade,
@@ -165,7 +218,6 @@ class _MaruAppBarState extends State<MaruAppBar>
                   ),
                 ),
               ),
-              // panel del menú (fuera del AppBar)
               Positioned(
                 left: 0, right: 0, top: top,
                 child: SlideTransition(
@@ -184,8 +236,14 @@ class _MaruAppBarState extends State<MaruAppBar>
                           _menuTile('Quiénes Somos', '/quienes-somos', Icons.info),
                           _menuTile('Mis cursos', '/mis-cursos', Icons.library_books),
                           const Divider(height: 1),
-                          _menuTile('Iniciar sesión', '/login', Icons.login),
-                          _menuTile('Crear cuenta', '/register', Icons.person_add),
+                          if (isLoggedIn)
+                            _menuTile('Cerrar sesión', null, Icons.logout, onTap: _logout)
+                          else ...[
+                            _menuTile('Iniciar sesión', null, Icons.login,
+                                onTap: () => _openAuth(AuthMode.login)),
+                            _menuTile('Crear cuenta', null, Icons.person_add,
+                                onTap: () => _openAuth(AuthMode.register)),
+                          ],
                         ],
                       ),
                     ),
@@ -215,22 +273,23 @@ class _MaruAppBarState extends State<MaruAppBar>
     _menuEntry = null;
   }
 
-  Widget _menuTile(String label, String route, IconData icon) {
+  Widget _menuTile(String label, String? route, IconData icon, {VoidCallback? onTap}) {
     return ListTile(
       leading: Icon(icon),
       title: Text(label),
       onTap: () {
-        _menuCtrl.reverse(); // cerrar progresivo
+        _menuCtrl.reverse();
         _removeMenu();
-        context.go(route);
+        if (onTap != null) {
+          onTap();
+        } else if (route != null) {
+          context.go(route);
+        }
       },
     );
   }
 }
 
-/// Nav desktop: sin ripple de fondo.
-/// Barra 3 px, redondeada, L→R al hover y retrae al salir.
-/// Ancho = ancho del label + 2 px (medido).
 class _DesktopNavBar extends StatelessWidget {
   final List<String> labels;
   final int selectedIndex;
@@ -302,8 +361,7 @@ class _NavItemState extends State<_NavItem> {
         widget.textStyle.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(.72));
 
     final style = widget.selected ? selectedStyle : unselectedStyle;
-    final w = _textWidth(context, widget.label, style) + 2; // +2 px
-
+    final w = _textWidth(context, widget.label, style) + 2;
     final target = (widget.selected || _hover) ? 1.0 : 0.0;
 
     return Padding(
@@ -320,7 +378,6 @@ class _NavItemState extends State<_NavItem> {
             children: [
               Text(widget.label, style: style),
               const SizedBox(height: 8),
-              // ancho fijo "w", barra interna animada — con umbral para evitar “puntitos”
               SizedBox(
                 width: w,
                 height: 3,
@@ -332,7 +389,7 @@ class _NavItemState extends State<_NavItem> {
                     tween: Tween<double>(begin: 0, end: target),
                     builder: (_, value, __) {
                       final bw = w * value;
-                      final draw = bw >= 1.0; // umbral: nada < 1px
+                      final draw = bw >= 1.0;
                       return draw
                           ? Container(
                               width: bw,
