@@ -38,15 +38,15 @@ class HomeScreen extends StatelessWidget {
               ),
 
               // SOBRE MÍ
-              HomeSection(
-                title: 'Sobre mí',
-                child: Text(
-                  'Soy Licenciada en Nutrición especializada en Nutrición Deportiva. '
-                  'Trabajo con deportistas y personas activas para mejorar rendimiento, salud y composición corporal. '
-                  'Más de 15 años entrenando; 21k Buenos Aires (2015), Patagonia Run 25k (2016) y desde 2023 triatlón.',
-                  style: theme.textTheme.bodyLarge,
-                ),
-              ),
+              // HomeSection(
+              //   title: 'Sobre mí',
+              //   child: Text(
+              //     'Soy Licenciada en Nutrición especializada en Nutrición Deportiva. '
+              //     'Trabajo con deportistas y personas activas para mejorar rendimiento, salud y composición corporal. '
+              //     'Más de 15 años entrenando; 21k Buenos Aires (2015), Patagonia Run 25k (2016) y desde 2023 triatlón.',
+              //     style: theme.textTheme.bodyLarge,
+              //   ),
+              // ),
 
               // POR QUÉ ELEGIRNOS
               const HomeSection(
